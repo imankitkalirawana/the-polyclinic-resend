@@ -3,14 +3,16 @@ FROM node:20-alpine AS base
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Production builder stage
 FROM base AS builder
 WORKDIR /app
+COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml* ./
+RUN pnpm install --frozen-lockfile
 COPY . .
-COPY package*.json ./
-RUN npm ci --include=dev
-RUN npm run build
+RUN pnpm run build
 
 # Production stage
 FROM base AS production
